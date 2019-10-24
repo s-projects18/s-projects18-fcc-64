@@ -56,12 +56,14 @@ emitter.run = function() {
   // Run the tests.
   try {
   var runner = mocha.ui('tdd').run()
-    .on('test end', function(test) {
+    .on('test end', function(test) {   
         // remove comments
         var body = test.body.replace(/\/\/.*\n|\/\*.*\*\//g, '');
+
         // collapse spaces
         body = body.replace(/\s+/g,' ');
-        var obj = {
+
+      var obj = {
           title: test.title,
           context: context.slice(0, -separator.length),
           state: test.state,
@@ -76,9 +78,8 @@ emitter.run = function() {
     })
     .on('suite', function(s) {
       context += (s.title + separator);
-
     })
-    .on('suite end', function(s) {
+    .on('suite end', function(s) {    
       context = context.slice(0, -(s.title.length + separator.length))
     })
   } catch(e) {

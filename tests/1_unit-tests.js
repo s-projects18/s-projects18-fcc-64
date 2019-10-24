@@ -7,9 +7,10 @@
 */
 
 var chai = require('chai');
-var StockHandler = require('../controllers/stockHandler.js');
 
-var stockPrices = new StockHandler();
+// why loading this if no tests are required?
+//var StockHandler = require('../controllers/stockHandler.js');
+//var stockPrices = new StockHandler();
 
 suite('Unit Tests', function(){
 
