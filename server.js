@@ -1,7 +1,8 @@
 'use strict';
 
-// info: these days (10/2019) the fcc-backend was renewed and it is impossible
-// post new prjects due to a bug
+// info: these days (10/2019) the fcc-backend was renewed;
+// there were some problems in submitting new projects but fcc solved the problems
+
 
 // ======================== [1] require ===========================
 var express     = require('express');
@@ -19,8 +20,8 @@ var runner            = require('./test-runner');
 // { meta: ..., data: ...,  error: ... }
 const responseEnhancer = require('express-response-formatter')
 
-// alternative to google finance
-// https://repeated-alpaca.glitch.me/ to get up-to-date stock price information without needing to sign up for your own key
+// mount database-helper lib
+var database = require('./helper/database.js');
 
 
 // ================= [2] create + configure app =====================
@@ -42,9 +43,17 @@ app.use( helmet.contentSecurityPolicy( {directives: {
 	defaultSrc: ["'self'"]
 } } ) );
 
+// https://stackoverflow.com/questions/10849687/express-js-how-to-get-remote-client-address
+// without: 127.0.0.1 is returned (proxy) for res.ip
+app.set('trust proxy', true);
 
 // ----------------- middleware functions -----------------------
-// ...
+// show error page if there is no database-connection
+app.use((req, res, next)=>{
+  if(database.checkConnection()) next();
+  else res.render('error-db.pug', {title: 'No database connection'});
+});
+
 
 // ----------------- get/post functions -----------------------
 //Index page (static HTML)
@@ -68,6 +77,10 @@ app.use(function(req, res, next) {
 
 
 // ================= [3] connect to database and start listening ================
+// start listening - no matter what db-status is
+// checking connection in middleware
+database.connect();
+
 //Start our server and tests!
 app.listen(process.env.PORT || 3000, function () {
   console.log("Listening on port " + process.env.PORT);
