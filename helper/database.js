@@ -11,7 +11,11 @@ exports.connect = () => {
   // connect to database
   mongoose.connect(process.env.DB, {
       useNewUrlParser: true
-    }).catch(err => { // Promise
+    })
+    .then(()=>{
+      console.log("db connected");
+  })
+    .catch(err => { 
       console.log(err);
     });
 }
@@ -32,89 +36,79 @@ exports.checkConnection = () => {
 }
 
 // schema --------------------------------
-const booksSchema = new Schema({
-  title: {type: String}, //*
-	created_on: {type: Date, default: Date.now},//auto
-  comments: []
+const likesSchema = new Schema({
+  stock:{type: String}, //*
+  ip: {type: String}, //*
+	created_on: {type: Date, default: Date.now} //auto
 });
 
 // model --------------------------------
-const Books = mongoose.model('book', booksSchema ); // Mongoose:book <=> MongoDB:books
+const Likes = mongoose.model('like', likesSchema ); // Mongoose:like <=> MongoDB:likes
 
 // crud --------------------------------
-// next(err, docs)
+// Promise-schema: Foo.then().catch()
+// callback: next(err, docs)
 
-// read all issues 
-exports.getBooks = (filter, next) => {
-  // doc is a Mongoose-object that CAN'T be modified
-  // lean()+exec() will return a plain JS-object instead
-  Books.find(filter).lean().exec((err, docs) => { 
-    if(err!==null) {
-      next(err, null);  
-    } else if(docs==null) { // entry doesn't exist
-      next('no entry found', null);      
-    } else {
-      docs.forEach((v)=>{
-        v.commentcount=0;
-        if(v.hasOwnProperty('comments')) v.commentcount = v.comments.length;
-      });
-      next(null, docs);
-    }
-  });
+// get all related likes 
+exports.getLikes = (filter, next) => {
+  Likes
+    .find()
+    .or(filter)
+    .then(data=>{
+      next(null, data);
+    })
+    .catch(err=>{
+      next(err, null);
+    });
 }
 
-exports.insertBook = (insertDataObj, next) => {
+// get sum of all likes for each stock
+// filterMatch: [{stock:'B'}, {stock:'A'}]
+// > similar to: WHERE stock='A' OR stock='B'
+//
+// $group:
+// > _id is a must in mongoose and it will be grouped
+// > {'$first':"$stock"} is an accunulator object
+// > stock has the same information as _id
+exports.getAggregateLikes = (filterMatch, next) => {
+  Likes.aggregate([
+    {$match: {$or: filterMatch}},
+    {$group:{_id: "$stock", stock: {'$first':"$stock"}, likes:{$sum:1}}}
+  ])
+  .exec( (e,d)=>{
+      if(e==null) next(null, d);
+      else next(e)
+    } );
+};
+
+// insert
+exports.insertLikes = (insertDataObj, next) => {
   // create object based on model
-  let urlObj = new Books(insertDataObj); 
+  let urlObj = new Likes(insertDataObj); 
   const pr = urlObj.save();
-  pr.then(function (doc) {
+  pr.then((doc) => {
     next(null, doc); // new doc created
-  }).catch(function(err){
-    console.log("error", err);
+  }).catch((err)=> {
+    console.log("insertLikes-error", err);
     next(err, null);
   }); 
 }
 
-/*exports.updateIssue = (id, updateDataObj, next) => {
-  updateDataObj.updated_on = new Date();
-  Issues.findOneAndUpdate({_id: id}, updateDataObj, {new:true}, next);    
-}*/
-
-exports.addComment = (bookId, comment, next) => {
-  exports.getBooks({_id:bookId}, (err, doc)=>{
-        if(err!==null) {
-          console.log(err);
-          next(err, null);
-        } else {
-          const book = JSON.parse(JSON.stringify(doc[0])); // just one
-          book.updated_on = new Date();
-          book.comments.push(comment);
-          
-          Books.findOneAndUpdate({_id: bookId}, book, {}, (err, doc)=>{
-            if(err!==null) {
-              next(err, null);
-            } else {
-              book.commentcount = book.comments.length;
-              next(null, book);
-            }
-          }); 
-        }     
-  });
-}
-
-exports.deleteBook = (id, next) => {
-  Books.deleteOne({_id: id}, (err, resultObject) => {
+// update and return updated object
+// not needed anymore
+exports.updateLikes = (filter, update, next) => {
+  Likes.findOneAndUpdate(filter, update, {new:true}, (err, resultObject) => {
     if(err==null) {
-      next(null, resultObject); 
+      next(null, resultObject);
     } else {
-      console.log(err); // eg: wrong format for id -> casting error
-      next(err, null);     
-    }
-  });
-}
+      console.log(err); 
+      next(err, null);       
+    } 
+  })    
+};
 
-exports.deleteAllBooks = (next) => {
-  Books.deleteMany({}, (err, resultObject) => {
+exports.deleteAllLikes = (next) => {
+  Likes.deleteMany({}, (err, resultObject) => {
     if(err==null) {
       next(null, resultObject); 
     } else {
