@@ -25,8 +25,8 @@ module.exports = function (app) {
   app.route('/api/stock-prices')
     .get(function (req, res){   
       // evaluate input-data --------------
-      let stock = req.query.stock;
-      if(!(stock instanceof Array)) stock = [stock];
+      let stock = req.query.stock;                   // ?stock=a&stock=b -> [a,b]
+      if(!(stock instanceof Array)) stock = [stock]; // ?stock=a -> a
    
       let queryLike = false; // likes is not set
       if(req.query.hasOwnProperty('like')) queryLike = (req.query.like=='true' || req.query.like=='1'); // likes is set and true
