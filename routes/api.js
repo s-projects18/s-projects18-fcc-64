@@ -128,18 +128,18 @@ module.exports = function (app) {
                 if(v.stock==v2.stock) result.stock[i2].likes=v.likes;  
               });
             });
-          
+         
             if(result.stock.length==1) {
               // {"stockData":{"stock":"GOOG","price":"786.90","likes":1}}
               //res.formatter.ok(result.stock[0]); // better way
               res.json({"stockData":result.stock[0]}); // fcc-requirement
             } else {
-              // {"stockData":[{"stock":"MSFT","price":"62.30","rel_likes":-1},{"stock":"GOOG","price":"786.90","rel_likes":1}]}
+              // {"stockData":[{"stock":"MSFT","price":"62.30","rel_likes":-1},{"stock":"GOOG","price":"786.90","rel_likes":1}]}             
               result.stock[0].rel_likes = result.stock[0].likes - result.stock[1].likes;
               result.stock[1].rel_likes = result.stock[1].likes - result.stock[0].likes;
               delete result.stock[0].likes;
               delete result.stock[1].likes;
-              
+             
               //res.formatter.ok(result.stock);  
               res.json({"stockData":result.stock});
             }

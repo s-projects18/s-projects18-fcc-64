@@ -40,7 +40,9 @@ app.use(responseEnhancer());
 // Set the content security policies to only allow loading of scripts and css from your server
 // -> content-security-policy: default-src 'self'
 app.use( helmet.contentSecurityPolicy( {directives: {
-	defaultSrc: ["'self'"]
+	defaultSrc: ["'self'"],
+  scriptSrc: ["'self'", 'code.jquery.com', "'self'", "'unsafe-inline'"],
+  styleSrc: ["'self'", "'unsafe-inline'"]
 } } ) );
 
 // https://stackoverflow.com/questions/10849687/express-js-how-to-get-remote-client-address
@@ -60,6 +62,11 @@ app.use((req, res, next)=>{
 app.route('/')
   .get(function (req, res) {
     res.sendFile(process.cwd() + '/views/index.html');
+  });
+
+app.route('/user-stories.html')
+  .get(function (req, res) {
+    res.sendFile(process.cwd() + '/views/user-stories.html');
   });
 
 //For FCC testing purposes

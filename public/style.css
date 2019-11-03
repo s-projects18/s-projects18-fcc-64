@@ -1,0 +1,9 @@
+#jsonResult {
+  display: block;
+  margin-top: 2rem;
+  margin-bottom:1rem;
+  border:1px solid #c0c0c0;
+  width:80%;
+  min-height:100px;
+  padding:0.5rem;
+}
