@@ -14,6 +14,8 @@ var server = require('../server');
 chai.use(chaiHttp);
 
 suite('Functional Tests', function() {
+    let globLikes = -1;
+  
     // BUG IN ASSERTION ANALYZER:
     // there MUST be at least 1 assert in body or match will create error, eg; assert.equal(2,2)
     suite('GET /api/stock-prices => stockData object', function() {  
@@ -22,30 +24,78 @@ suite('Functional Tests', function() {
         .get('/api/stock-prices')
         .query({stock: 'goog'})
         .end(function(err, res){
-         // TODO
-          assert.equal(2,2);
+          assert.equal(res.statusCode,200);
+          const obj = JSON.parse(res.text);
+          assert.property(obj, 'stockData');
+          assert.property(obj.stockData, 'stock');
+          assert.property(obj.stockData, 'price');
+          assert.equal(obj.stockData.stock, 'GOOG');
+          assert.isNumber(obj.stockData.price);
           done();
         });
       });
    
       test('1 stock with like', function(done) {
-        assert.equal(2,2);
-      done();  
+       chai.request(server)
+        .get('/api/stock-prices')
+        .query({stock: 'a', like: 'true'})
+        .end(function(err, res){
+          assert.equal(res.statusCode,200);
+          const obj = JSON.parse(res.text);
+          assert.equal(obj.stockData.stock, 'A');
+          assert.property(obj.stockData, 'likes');
+          assert.isNumber(obj.stockData.likes);
+          assert.isAtLeast(obj.stockData.likes, 1);
+          globLikes = obj.stockData.likes;
+          done();
+        }); 
       });
       
       test('1 stock with like again (ensure likes arent double counted)', function(done) {
-        assert.equal(2,2);
-      done();  
+       chai.request(server)
+        .get('/api/stock-prices')
+        .query({stock: 'a', like: 'true'})
+        .end(function(err, res){
+          assert.equal(res.statusCode,200);
+          const obj = JSON.parse(res.text);
+          assert.equal(obj.stockData.likes, globLikes);
+          done();
+        });  
       });
       
       test('2 stocks', function(done) {
-        assert.equal(2,2);
-      done();  
+       chai.request(server)
+        .get('/api/stock-prices')
+        .query({stock: ['c', 'd']}) // ?stock=c&stock=d are interpreted as array!
+        .end(function(err, res){
+          assert.equal(res.statusCode,200);
+          const obj = JSON.parse(res.text);
+          assert.property(obj, 'stockData');         
+          assert.isArray(obj.stockData);
+          assert.equal(obj.stockData[0].stock, 'C');
+          assert.equal(obj.stockData[1].stock, 'D');
+          assert.isNumber(obj.stockData[0].price);
+          assert.isNumber(obj.stockData[1].price);
+          done();
+        });  
       });
       
       test('2 stocks with like', function(done) {
-        assert.equal(2,2);
-      done();  
+       chai.request(server)
+        .get('/api/stock-prices')
+        .query({stock: ['aa', 'bb'], like: 'true'})
+        .end(function(err, res){
+          assert.equal(res.statusCode,200);
+          const obj = JSON.parse(res.text);        
+          assert.equal(obj.stockData[0].stock, 'AA');
+          assert.equal(obj.stockData[1].stock, 'BB');
+          assert.property(obj.stockData[0], 'rel_likes');
+          assert.property(obj.stockData[1], 'rel_likes');
+          assert.isNumber(obj.stockData[0].rel_likes);
+          assert.isNumber(obj.stockData[1].rel_likes);
+          assert.equal(0, obj.stockData[0].rel_likes + obj.stockData[1].rel_likes);
+          done();
+        }); 
       });
       
     }); // suite: /api/stock-prices
