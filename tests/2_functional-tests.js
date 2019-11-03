@@ -86,7 +86,7 @@ suite('Functional Tests', function() {
         .query({stock: ['aa', 'bb'], like: 'true'})
         .end(function(err, res){
           assert.equal(res.statusCode,200);
-          const obj = JSON.parse(res.text);        
+          const obj = JSON.parse(res.text);   
           assert.equal(obj.stockData[0].stock, 'AA');
           assert.equal(obj.stockData[1].stock, 'BB');
           assert.property(obj.stockData[0], 'rel_likes');
@@ -102,11 +102,14 @@ suite('Functional Tests', function() {
 
     // extra: suite security
   	suite('GET / => check security', function() {
-      test('content-security-policy => default-src self', function(done) {
+      // cont chk = "default-src 'self'";
+      const chk = "default-src 'self'; script-src 'self' code.jquery.com 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'";
+
+      test('content-security-policy => '+chk, function(done) {
         chai.request(server)
         .get('/api')
         .end(function(err, res){ 
-           assert.equal(res.header['content-security-policy'], "default-src 'self'");
+           assert.equal(res.header['content-security-policy'], chk);
            done();
         });         
       });
