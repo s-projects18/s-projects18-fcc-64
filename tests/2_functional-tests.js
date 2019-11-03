@@ -15,7 +15,7 @@ chai.use(chaiHttp);
 
 suite('Functional Tests', function() {
     // BUG IN ASSERTION ANALYZER:
-    // there MUST be at leat 1 assert in body or match will create error, eg; assert.equal(2,2)
+    // there MUST be at least 1 assert in body or match will create error, eg; assert.equal(2,2)
     suite('GET /api/stock-prices => stockData object', function() {  
       test('1 stock', function(done) {
        chai.request(server)
