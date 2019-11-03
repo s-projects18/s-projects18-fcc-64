@@ -68,7 +68,7 @@ exports.getLikes = (filter, next) => {
 //
 // $group:
 // > _id is a must in mongoose and it will be grouped
-// > {'$first':"$stock"} is an accunulator object
+// > {'$first':"$stock"} is an accumulator object
 // > stock has the same information as _id
 exports.getAggregateLikes = (filterMatch, next) => {
   Likes.aggregate([
@@ -107,8 +107,11 @@ exports.updateLikes = (filter, update, next) => {
   })    
 };
 
-exports.deleteAllLikes = (next) => {
-  Likes.deleteMany({}, (err, resultObject) => {
+exports.deleteAllLikes = (numMinutes, next) => {
+  var d = new Date();
+  d.setMinutes(d.getMinutes()-numMinutes);
+  let filter = {created_on: {$lt:d}};
+  Likes.deleteMany(filter, (err, resultObject) => {
     if(err==null) {
       next(null, resultObject); 
     } else {

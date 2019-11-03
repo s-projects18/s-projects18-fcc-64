@@ -37,6 +37,14 @@ module.exports = function (app) {
       // Promise chain -------------------
       if(req.query.hasOwnProperty('stock')) {
         getAllStockData(stock)
+          .then(result=>{ // delete likes older than 10 minutes (cleanup ips)
+            return new Promise((resolve,reject)=>{
+              database.deleteAllLikes(10, (e,d)=>{
+                if(e==null) resolve(result);
+                else reject(e);
+              });              
+            });
+          })        
           .then(result=>{ // get stock data from external api
             var resFiltered = result.map((v)=>{
               return {stock:v.symbol, price:v.latestPrice};
