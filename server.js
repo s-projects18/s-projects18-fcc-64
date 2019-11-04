@@ -56,6 +56,15 @@ app.use((req, res, next)=>{
   else res.render('error-db.pug', {title: 'No database connection'});
 });
 
+// testing status for frontend
+app.use((req, res, next)=>{
+  if(req.query.test!==undefined) {
+    if(req.query.test==200) res.formatter.ok([{title:'200: an dummy request'}], {info: 'Testinfo'});
+    if(req.query.test==400) res.formatter.badRequest([{details:'400: an dummy bad request'},{details:'...'}]);
+    if(req.query.test==500) res.formatter.serverError([{details:'500: an dummy bad request'},{details:'...'}]);
+  } else next();
+});
+
 
 // ----------------- get/post functions -----------------------
 //Index page (static HTML)

@@ -34,6 +34,7 @@ module.exports = function (app) {
       // ip of the remote client
       const ip = req.ip;  
     
+   
       // Promise chain -------------------
       if(req.query.hasOwnProperty('stock')) {
         getAllStockData(stock)

@@ -1,11 +1,32 @@
-**FreeCodeCamp**- Information Security and Quality Assurance
-------
+## **FreeCodeCamp**- Information Security and Quality Assurance
 
-Project Stock Price Checker
+### Project Stock Price Checker (learning project)
 
-1) SET NODE_ENV to `test` without quotes and set DB to your mongo connection string
-2) Complete the project in `routes/api.js` or by creating a handler/controller
-3) You will add any security features to `server.js`
-4) You will create all of the functional tests in `tests/2_functional-tests.js`
+An api to request stock-prices and set likes.
 
+### Installation
 
+Live version is installed on glitch.com
+(https://s-projects18-fcc-64.glitch.me/)
+
+One can create a new glitch-project and imported it from github.
+It's a node.js project so it can also be installed per console.
+
+### Usage REST-Api
+
+| METHOD | URL + PARMS | STATUS RETURNED |  DATA RETURNED |
+| ------ | ----------- | --------------- | -------------- |
+| GET | /api/stock-prices?stock=goog | 200, 400, 500 | {stockData:{stock:..., price:...}} |
+| GET | /api/stock-prices?stock=goog&like=true | 200, 400, 500 | {stockData:{stock:..., price:..., likes:...}} |
+| GET | /api/stock-prices?stock=goog&stock=msft | 200, 400, 500 | {stockData:[{...}, {...}]} |
+| GET | /api/stock-prices?stock=goog&stock=msft&like=true | 200, 400, 500 | {stockData:[{stock:..., price:..., rel_likes:...}, {...}]} |
+
+### Example return values
+
+```
+{"stockData":{"stock":"GOOG","price":"786.90","likes":1}}
+```
+
+```
+{"stockData":[{"stock":"MSFT","price":"62.30","rel_likes":-1},{"stock":"GOOG","price":"786.90","rel_likes":1}]}
+```
