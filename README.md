@@ -17,9 +17,10 @@ It's a node.js project so it can also be installed per console.
 | METHOD | URL + PARMS | STATUS RETURNED |  DATA RETURNED |
 | ------ | ----------- | --------------- | -------------- |
 | GET | /api/stock-prices?stock=goog | 200, 400, 500 | {stockData:{stock:..., price:...}} |
-| GET | /api/stock-prices?stock=goog&like=true | 200, 400, 500 | {stockData:{stock:..., price:..., likes:...}} |
+| GET | /api/stock-prices?stock=goog&like=true* | 200, 400, 500 | {stockData:{stock:..., price:..., likes:...}} |
 | GET | /api/stock-prices?stock=goog&stock=msft | 200, 400, 500 | {stockData:[{...}, {...}]} |
-| GET | /api/stock-prices?stock=goog&stock=msft&like=true | 200, 400, 500 | {stockData:[{stock:..., price:..., rel_likes:...}, {...}]} |
+| GET | /api/stock-prices?stock=goog&stock=msft&like=true* | 200, 400, 500 | {stockData:[{stock:..., price:..., rel_likes:...}, {...}]} |
+```* here data is created on the server, so GET probably is not the best choise```
 
 ### Example return values
 

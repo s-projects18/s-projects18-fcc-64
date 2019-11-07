@@ -24,23 +24,42 @@ module.exports = function (app) {
   // - in stockData, I can see the stock(string, the ticker), price(decimal in string format), and likes(int).
   app.route('/api/stock-prices')
     .get(function (req, res){   
-      // evaluate input-data --------------
+      // prepare + evaluate input-data ======================================================
       let stock = req.query.stock;                   // ?stock=a&stock=b -> [a,b]
       if(!(stock instanceof Array)) stock = [stock]; // ?stock=a -> a
+
+    
+      // user input error: wrong stock format
+      // https://en.wikipedia.org/wiki/Ticker_symbol
+      //  > A stock symbol may consist of letters, numbers or a combination of both 
+      // info: eg 'lsd' is valid but it doesn't exist so it's not handled here
+      let err = [];
+      stock.forEach((v)=>{
+         if(v=='') {
+          err.push({details:'stock argument is empty'});
+        } else if(!/^[a-zA-Z0-9]+$/.test(v)) {
+          err.push({details:'stock argument is not valid: '+v});
+        }
+      });
+      if(err.length>0) {
+        res.formatter.badRequest(err); // 400
+        return;
+      };
    
+      // no user input error possible
       let queryLike = false; // likes is not set
-      if(req.query.hasOwnProperty('like')) queryLike = (req.query.like=='true' || req.query.like=='1'); // likes is set and true
+      if(req.query.hasOwnProperty('like')) queryLike = (req.query.like=='true' || req.query.like=='1'); // is set and true
     
       // ip of the remote client
       const ip = req.ip;  
     
    
-      // Promise chain -------------------
+      // Promise chain ==========================================================
       if(req.query.hasOwnProperty('stock')) {
         getAllStockData(stock)
-          .then(result=>{ // delete likes older than 10 minutes (cleanup ips)
+          .then(result=>{ // delete likes older than 20 minutes (cleanup ips)
             return new Promise((resolve,reject)=>{
-              database.deleteAllLikes(10, (e,d)=>{
+              database.deleteAllLikes(20, (e,d)=>{
                 if(e==null) resolve(result);
                 else reject(e);
               });              
@@ -146,11 +165,12 @@ module.exports = function (app) {
             }
           })
           .catch(e=>{
-            res.formatter.badRequest([e]); // TODO: 400 OR 500 ??? check
+            res.formatter.badRequest(e); // TODO: 400 OR 500 ??? check
           });
       
       } else {
-        res.formatter.badRequest(['no stock argument given']); // 400
+        // /api/stock-prices?bla=blub
+        res.formatter.badRequest([{details:'no stock argument given'}]); // 400
       }
     });  
 };
@@ -158,26 +178,24 @@ module.exports = function (app) {
 
 // alternative to google finance
 // https://repeated-alpaca.glitch.me/ to get up-to-date stock price information without needing to sign up for your own key
-// https://en.wikipedia.org/wiki/Ticker_symbol
-//  > A stock symbol may consist of letters, numbers or a combination of both
 const getAllStockData = (stocks) => {
   return new Promise((resolve, reject)=>{
     const promises = [];
     stocks.forEach((v)=>{
       promises.push( getStockData(v) );
     });
-    Promise.all(promises).then(d=>{resolve(d)}).catch(e=>{reject(e)});    
+    Promise.all(promises).then(d=>{resolve(d)}).catch(e=>{reject([e])});    
   });
  };
 
-// TODO: handling illegal stockId
 const getStockData = (stockId) => {
   return new Promise( (resolve, reject) => {
     request('https://repeated-alpaca.glitch.me//v1/stock/'+stockId+'/quote', function(error, response, body) {
       if(error==null) {
-        resolve(JSON.parse(body));
+        if(body.toLowerCase()=='"unknown symbol"') reject({details:'unknown stock: '+stockId});
+        else resolve(JSON.parse(body));
       } else {
-        reject(error)
+        reject({details:'getStockData error: '+stockId})
         console.log('error:', error);  
       }
     });
