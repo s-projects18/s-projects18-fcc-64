@@ -56,6 +56,7 @@ app.use((req, res, next)=>{
   else res.render('error-db.pug', {title: 'No database connection'});
 });
 
+
 // testing status for frontend
 app.use((req, res, next)=>{
   if(req.query.test!==undefined) {
